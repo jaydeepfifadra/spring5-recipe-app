@@ -4,15 +4,18 @@ import guru.springframework.model.*;
 import guru.springframework.repositories.CategoryRepository;
 import guru.springframework.repositories.RecipeRepository;
 import guru.springframework.repositories.UnitOfMeasureRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 @Component
+@Slf4j
 public class RecipeBootstrap implements ApplicationListener<ContextRefreshedEvent> {
 
     CategoryRepository categoryRepository;
@@ -26,7 +29,9 @@ public class RecipeBootstrap implements ApplicationListener<ContextRefreshedEven
     }
 
     @Override
+    @Transactional
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
+        log.debug("Loading Application");
         recipeRepository.saveAll(getRecipes());
     }
 
@@ -54,14 +59,14 @@ public class RecipeBootstrap implements ApplicationListener<ContextRefreshedEven
         UnitOfMeasure pintUom = optionalPint.get();
 
         Optional<Category> optionalMexican = categoryRepository.findByDescription("Mexican");
-        Category categoryMexican = optionalMexican.get();
+        Category categoryMexican = optionalMexican.orElse(null);
 
         Optional<Category> optionalAmerican = categoryRepository.findByDescription("American");
         Category categoryAmerican = optionalAmerican.get();
 
         Recipe guacRecipe = new Recipe();
 
-        guacRecipe.getCategories().add(categoryMexican);
+       guacRecipe.getCategories().add(categoryMexican);
         guacRecipe.getCategories().add(categoryAmerican);
         guacRecipe.setDescription("Perfect Guacamole");
         guacRecipe.setCookTime(0);
@@ -112,6 +117,8 @@ public class RecipeBootstrap implements ApplicationListener<ContextRefreshedEven
 
 
         recipes.add(guacRecipe);
+
+        log.debug("Recipe one added.");
         return recipes;
     }
 
